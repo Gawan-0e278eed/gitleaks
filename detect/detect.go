@@ -381,9 +381,14 @@ func (d *Detector) DetectGit(source string, logOpts string, gitScanType GitScanT
 		})
 	}
 
+	if d.baseline != nil {
+		d.findings = ApplyBaseline(d.findings, d.baseline)
+	}
+
 	if err := s.Wait(); err != nil {
 		return d.findings, err
 	}
+
 	log.Info().Msgf("%d commits scanned.", len(d.commitMap))
 	log.Debug().Msg("Note: this number might be smaller than expected due to commits with no additions")
 	if git.ErrEncountered {
@@ -565,11 +570,6 @@ func (d *Detector) addFinding(finding report.Finding) {
 	if _, ok := d.gitleaksIgnore[finding.Fingerprint]; ok {
 		log.Debug().Msgf("ignoring finding with Fingerprint %s",
 			finding.Fingerprint)
-		return
-	}
-
-	if d.baseline != nil && !IsNew(finding, d.baseline) {
-		log.Debug().Msgf("baseline duplicate -- ignoring finding with Fingerprint %s", finding.Fingerprint)
 		return
 	}
 

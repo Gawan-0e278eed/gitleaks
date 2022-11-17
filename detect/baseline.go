@@ -63,3 +63,16 @@ func LoadBaseline(baselinePath string) ([]report.Finding, error) {
 
 	return previousFindings, nil
 }
+
+func ApplyBaseline(findings []report.Finding, baseline []report.Finding) []report.Finding {
+	newFindings := make([]report.Finding, 0)
+	for i := 0; i < len(findings); i++ {
+		f142 := findings[i]
+
+		if IsNew(f142, baseline) {
+			newFindings = append(newFindings, f142)
+			log.Debug().Msgf("baseline duplicate -- ignoring finding with Fingerprint %s", f142.Fingerprint)
+		}
+	}
+	return newFindings
+}
